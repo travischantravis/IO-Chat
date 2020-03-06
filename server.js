@@ -18,6 +18,8 @@ io.sockets.on("connection", function(socket) {
 
   // Disconnect
   socket.on("disconnect", function(data) {
+    users.splice(users.indexOf(socket.username), 1);
+    updateUsernames();
     connections.splice(connections.indexOf(socket), 1);
     console.log("Disconnected: %s sockets connected", connections.length); // How many are still connected
   });
@@ -25,6 +27,18 @@ io.sockets.on("connection", function(socket) {
   // Send message
   socket.on("send message", function(data) {
     console.log(data);
-    io.sockets.emit("new message", { msg: data });
+    io.sockets.emit("new message", { msg: data, user: socket.username });
   });
+
+  // New User
+  socket.on("new user", function(data, callback) {
+    callback(true);
+    socket.username = data;
+    users.push(socket.username);
+    updateUsernames();
+  });
+
+  function updateUsernames() {
+    io.sockets.emit("get users", users);
+  }
 });
